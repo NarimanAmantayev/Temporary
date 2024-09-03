@@ -1,0 +1,81 @@
+import os
+from tkinter import Tk, filedialog, Button, Label, Entry
+
+
+class FileMergerApp:
+    def __init__(self, root):
+        self.root = root
+        root.title("File Merger")
+
+        # Label and button for selecting the output folder
+        self.output_label = Label(root, text="Select Output Folder")
+        self.output_label.pack()
+
+        self.browse_output_button = Button(root, text="Browse Output Folder", command=self.browse_output_folder)
+        self.browse_output_button.pack()
+
+        # Label for displaying selected output folder
+        self.output_folder_label = Label(root, text="No folder selected")
+        self.output_folder_label.pack()
+
+        # Entry for file extensions
+        self.extension_label = Label(root, text="File Extensions (e.g., .cex):")
+        self.extension_label.pack()
+
+        self.extension_entry = Entry(root)
+        self.extension_entry.pack()
+
+        # Button to select files to merge
+        self.select_files_button = Button(root, text="Select Files to Merge", command=self.select_files_to_merge)
+        self.select_files_button.pack()
+
+        # Label to display selected files
+        self.selected_files_label = Label(root, text="No files selected")
+        self.selected_files_label.pack()
+
+        # Button to process files
+        self.process_button = Button(root, text="Combine Files", command=self.combine_files)
+        self.process_button.pack()
+
+        self.selected_files = []
+
+    def browse_output_folder(self):
+        self.output_folder_path = filedialog.askdirectory()
+        self.output_folder_label.config(text=f"Selected output folder: {self.output_folder_path}")
+
+    def select_files_to_merge(self):
+        file_extensions = self.extension_entry.get().strip().split(',')
+        extensions = [(f"*{ext.strip()}", f"*{ext.strip()}") for ext in file_extensions]
+        files = filedialog.askopenfilenames(filetypes=extensions)
+        self.selected_files = list(files)
+        self.selected_files_label.config(text=f"Selected {len(self.selected_files)} files")
+
+    def combine_files(self):
+        if not hasattr(self, 'output_folder_path'):
+            self.label.config(text="Output folder must be selected.")
+            return
+
+        if not self.selected_files:
+            self.label.config(text="No files selected for merging.")
+            return
+
+        combined_content = ""
+        for filepath in self.selected_files:
+            with open(filepath, 'r', encoding='utf-8') as file:
+                combined_content += file.read() + "\n\n"
+
+        last_selected_file = os.path.basename(self.selected_files[-1])
+        output_filename = f"{last_selected_file[:6]}_merged.cha"
+        output_file_path = os.path.join(self.output_folder_path, output_filename)
+
+        with open(output_file_path, 'w', encoding='utf-8') as output_file:
+            output_file.write(combined_content)
+
+        self.label.config(text="Files have been combined successfully.")
+        print(f"Combined file written to {output_file_path}")
+
+
+if __name__ == "__main__":
+    root = Tk()
+    app = FileMergerApp(root)
+    root.mainloop()
